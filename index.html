@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Okilink Lite</title>
+<style>
+  body { font-family: Arial, sans-serif; background: linear-gradient(to right, #0f2027, #203a43, #2c5364); color: #fff; padding: 20px; }
+  h1 { text-align: center; }
+  input, textarea, button { display: block; width: 100%; margin: 10px 0; padding: 10px; border-radius: 5px; border: none; }
+  textarea { min-height: 100px; }
+  .paste { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; margin: 10px 0; }
+  a { color: #ffd700; }
+</style>
+</head>
+<body>
+
+<h1>Okilink Lite</h1>
+
+<h2>Create Paste</h2>
+<input type="text" id="title" placeholder="Title (optional)">
+<textarea id="content" placeholder="Paste your text here..."></textarea>
+<button onclick="createPaste()">Save Paste</button>
+
+<h2>Saved Pastes</h2>
+<div id="pasteList"></div>
+
+<script>
+const PASTES_KEY = 'okilink_pastes';
+
+function savePastes(pastes) {
+  localStorage.setItem(PASTES_KEY, JSON.stringify(pastes));
+}
+
+function loadPastes() {
+  const data = localStorage.getItem(PASTES_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+function autoLink(text) {
+  return text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+}
+
+function renderPastes() {
+  const container = document.getElementById('pasteList');
+  const pastes = loadPastes();
+  container.innerHTML = '';
+  pastes.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'paste';
+    div.innerHTML = `
+      <strong>${p.title || 'No Title'}</strong>
+      <p>${autoLink(p.content)}</p>
+      <button onclick="deletePaste(${i})">Delete</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function createPaste() {
+  const title = document.getElementById('title').value;
+  const content = document.getElementById('content').value;
+  if(!content.trim()) { alert('Content cannot be empty'); return; }
+  const pastes = loadPastes();
+  pastes.unshift({ title, content });
+  savePastes(pastes);
+  renderPastes();
+  document.getElementById('title').value = '';
+  document.getElementById('content').value = '';
+}
+
+function deletePaste(index) {
+  const pastes = loadPastes();
+  pastes.splice(index, 1);
+  savePastes(pastes);
+  renderPastes();
+}
+
+// Initial render
+renderPastes();
+</script>
+
+</body>
+</html>
